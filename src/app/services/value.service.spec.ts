@@ -1,4 +1,4 @@
-//import { TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 
 import { ValueService } from './value.service';
 
@@ -6,7 +6,12 @@ describe('ValueService', () => {
   let service: ValueService;
 
   beforeEach(() => {
-    service = new ValueService();
+    //crear modulo , inyectar el servicio e instanciarlo con inject
+    TestBed.configureTestingModule({
+      providers:[ValueService]
+    });
+    //service = new ValueService();
+    service= TestBed.inject(ValueService);
   });
 
   it('should be create', () => {
