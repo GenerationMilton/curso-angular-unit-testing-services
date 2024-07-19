@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse, HttpParams, HttpStatusCode } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { throwError, zip } from 'rxjs';
+import { Observable, throwError, zip } from 'rxjs';
 import { catchError, map, retry } from 'rxjs/operators';
 
 import { CreateProductDTO, Product, UpdateProductDTO } from './../models/product.model';
@@ -23,7 +23,7 @@ export class ProductsService {
   }
 
 
-  getAll(limit?: number, offset?: number) {
+  getAll(limit?: number, offset?: number):Observable<Product[]> {
     let params = new HttpParams();
     if (limit && offset) {
       params = params.set('limit', limit);
