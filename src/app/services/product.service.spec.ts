@@ -2,12 +2,13 @@ import { HttpClientTestingModule, HttpTestingController } from "@angular/common/
 import { TestBed } from "@angular/core/testing";
 import { environment } from "../../environments/environment";
 import { generateManyProducts, generateOneProduct } from "../models/product.mock";
-import { Product } from "../models/product.model";
+import { CreateProductDTO, Product } from "../models/product.model";
 import { ProductsService } from "./product.service";
 
 fdescribe('ProductsService',() =>{
   let productService: ProductsService;
   let httpController:HttpTestingController;
+
   beforeEach(()=>{
     TestBed.configureTestingModule({
       imports:[HttpClientTestingModule],
@@ -19,6 +20,11 @@ fdescribe('ProductsService',() =>{
     productService =TestBed.inject(ProductsService);
     httpController=TestBed.inject(HttpTestingController);
   });
+
+  afterEach(()=>{
+    httpController.verify();
+  });
+
 
   //primera prueba o test
   it('Should be create',()=>{
@@ -43,7 +49,7 @@ fdescribe('ProductsService',() =>{
         const url = `${environment.API_URL}/api/v1/products`;
         const req = httpController.expectOne(url);
         req.flush(mockData);
-        httpController.verify();
+
       //Assert
 
     });
@@ -66,7 +72,7 @@ fdescribe('ProductsService',() =>{
       const url = `${environment.API_URL}/api/v1/products`;
       const req = httpController.expectOne(url);
       req.flush(mockData);
-      httpController.verify();
+
     });
 
     it('should return product list with taxes',(doneFn)=>{
@@ -104,7 +110,7 @@ fdescribe('ProductsService',() =>{
        const url = `${environment.API_URL}/api/v1/products`;
        const req = httpController.expectOne(url);
        req.flush(mockData);
-       httpController.verify();
+
      //Assert
 
 
@@ -129,7 +135,6 @@ fdescribe('ProductsService',() =>{
       const params=req.request.params;
       expect(params.get('limit')).toEqual(`${limit}`);
       expect(params.get('offset')).toEqual(`${offset}`);
-      httpController.verify();
 
 
       //Assert
@@ -140,7 +145,38 @@ fdescribe('ProductsService',() =>{
 
   });
 
+  //pruebas para post
 
+  describe('test for create',()=> {
 
+    it('should return a new product',(doneFn)=> {
+      //Arrange
+    const mockData = generateOneProduct();
+    const dto: CreateProductDTO = {
+      title: 'new Product',
+      price: 100,
+      images: ['img'],
+      description: 'bla bla bla',
+      categoryId: 12
+    }
+    //Act
+    productService.create({...dto})
+    .subscribe(data =>{
+      //Assert
+      expect(data).toEqual(mockData);
+      doneFn();
+    });
+     //http config
+     const url =`${environment.API_URL}/api/v1/products`;
+     const req = httpController.expectOne(url);
+     req.flush(mockData);
+     //comprobaciones del cuerpo del dto enviado en el request
+     expect(req.request.body).toEqual(dto);
+     //comprobaciones del metodo
+     expect(req.request.method).toEqual('POST');
+
+    });
+
+  });
 
 });
