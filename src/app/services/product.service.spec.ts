@@ -1,25 +1,33 @@
-import { HttpStatusCode } from "@angular/common/http";
+import { HTTP_INTERCEPTORS, HttpStatusCode } from "@angular/common/http";
 import { HttpClientTestingModule, HttpTestingController } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
 import { environment } from "../../environments/environment";
+import { TokenInterceptor } from "../interceptors/token.interceptor";
 import { generateManyProducts, generateOneProduct } from "../models/product.mock";
 import { CreateProductDTO, Product, UpdateProductDTO } from "../models/product.model";
 import { ProductsService } from "./product.service";
+import { TokenService } from "./token.services";
 
 fdescribe('ProductsService',() =>{
   let productService: ProductsService;
   let httpController:HttpTestingController;
+  let tokenService: TokenService;
 
   beforeEach(()=>{
     TestBed.configureTestingModule({
       imports:[HttpClientTestingModule],
       providers:[
-        ProductsService
+        ProductsService,
+        TokenService,
+        {
+          provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi:true
+        }
       ]
     });
     //inyectar instancia a trabajar
     productService =TestBed.inject(ProductsService);
     httpController=TestBed.inject(HttpTestingController);
+    tokenService=TestBed.inject(TokenService);
   });
 
   afterEach(()=>{
@@ -37,6 +45,8 @@ fdescribe('ProductsService',() =>{
     it('should return a product list', (doneFn)=>{
       //Arrange
       const mockData:Product[] = generateManyProducts(2);
+      //Spy with a function the token service
+      spyOn(tokenService, 'getToken').and.returnValue('123');
 
       //Act
       productService.getAllSimple()
@@ -49,6 +59,9 @@ fdescribe('ProductsService',() =>{
         //http config para responder con el mock
         const url = `${environment.API_URL}/api/v1/products`;
         const req = httpController.expectOne(url);
+        //expect del spy del tokenService
+        const headers=req.request.headers;
+        expect(headers.get('Authorization')).toEqual(`Bearer 123`);
         req.flush(mockData);
 
       //Assert
